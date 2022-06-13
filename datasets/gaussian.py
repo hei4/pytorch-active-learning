@@ -92,8 +92,7 @@ if __name__ == '__main__':
     from matplotlib.colors import ListedColormap
     from pathlib import Path
 
-    pastel = plt.get_cmap('Pastel1')
-    cm = ListedColormap([pastel(0), pastel(1), pastel(2)])
+    cm = ListedColormap(['paleturquoise', 'lightcoral'])
 
     fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(16, 4))
 
@@ -104,6 +103,7 @@ if __name__ == '__main__':
         marker='o', s=8, edgecolor='black', linewidth=0.1)
     axs[0].set_xlim(-4, 4)
     axs[0].set_ylim(-4, 4)
+    axs[0].set_title('train set')
 
     axs[1].set_aspect('equal')
     axs[1].scatter(
@@ -112,6 +112,7 @@ if __name__ == '__main__':
         marker='o', s=8, edgecolor='black', linewidth=0.1)
     axs[1].set_xlim(-4, 4)
     axs[1].set_ylim(-4, 4)
+    axs[1].set_title('valid set')
 
     axs[2].set_aspect('equal')
     axs[2].scatter(
@@ -120,6 +121,7 @@ if __name__ == '__main__':
         marker='o', s=8, edgecolor='black', linewidth=0.1)
     axs[2].set_xlim(-4, 4)
     axs[2].set_ylim(-4, 4)
+    axs[2].set_title('test set')
     
     axs[3].set_aspect('equal')
     axs[3].scatter(
@@ -128,6 +130,7 @@ if __name__ == '__main__':
         marker='o', s=8, edgecolor='black', linewidth=0.1)
     axs[3].set_xlim(-4, 4)
     axs[3].set_ylim(-4, 4)
+    axs[3].set_title('unlabeld set')
 
     path = Path(__file__)
     plt.savefig(path.parent.joinpath('check_gaussian.png'))

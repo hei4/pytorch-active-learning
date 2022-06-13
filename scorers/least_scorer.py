@@ -9,7 +9,7 @@ class LeastConfidenceScorer:
         numerator = num_labels * (1. - most_confidence)
         denominator = num_labels - 1
 
-        return numerator / denominator
+        return {'score': numerator / denominator}
 
 
 if __name__ == '__main__':
@@ -22,5 +22,6 @@ if __name__ == '__main__':
         [0., 10., 100.]], dtype=torch.float32)
     print(f'logits: {logits}')
     
-    scores = scorer(logits)
+    outputs = scorer(logits)
+    scores = outputs['score']
     print(f'scores: {scores}')

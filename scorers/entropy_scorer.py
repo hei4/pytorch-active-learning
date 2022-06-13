@@ -8,7 +8,7 @@ class EntropyConfidenceScorer:
         numerator = -torch.sum(prob_logs, dim=1)
         denominator = math.log2(probabilities.size(1))
 
-        return numerator / denominator
+        return {'score': numerator / denominator}
 
 
 if __name__ == '__main__':
@@ -24,5 +24,6 @@ if __name__ == '__main__':
     probabilities = torch.softmax(logits, dim=1)
     print(f'probabilities: {probabilities}')
 
-    scores = scorer(logits)
+    outputs = scorer(logits)
+    scores = outputs['score']
     print(f'scores: {scores}')

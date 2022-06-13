@@ -6,7 +6,7 @@ class RatioConfidenceScorer:
         topk_prob = torch.topk(probabilities, k=2, dim=1).values
         ratio_prob = topk_prob[:, 1] / topk_prob[:, 0]
 
-        return ratio_prob
+        return {'score': ratio_prob}
 
 
 if __name__ == '__main__':
@@ -22,5 +22,6 @@ if __name__ == '__main__':
     probabilities = torch.softmax(logits, dim=1)
     print(f'probabilities: {probabilities}')
 
-    scores = scorer(logits)
+    outputs = scorer(logits)
+    scores = outputs['score']
     print(f'scores: {scores}')

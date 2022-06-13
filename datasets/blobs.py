@@ -9,7 +9,7 @@ from base import BaseMaker
 
 class BlobsMaker(BaseMaker):
     def __init__(self, size:int, random_state:int=0) -> None:
-        num_classes = 3
+        num_classes = 4
         size_per_class = size // num_classes
 
         self.cluster_std = 0.15
@@ -28,8 +28,8 @@ class BlobsMaker(BaseMaker):
     
     def make_dataset(self, size_per_class, random_state):
         X, y = make_blobs(
-            n_samples=(size_per_class, size_per_class, size_per_class),
-            centers=[[0., 1.], [-0.5, -1.], [0.5, -1.]],
+            n_samples=(size_per_class, size_per_class, size_per_class, size_per_class),
+            centers=[[-0.5, 1.], [0.5, 1.], [-0.5, -1.], [0.5, -1.]],
             cluster_std=self.cluster_std,
             shuffle=True,
             random_state=random_state)
@@ -38,7 +38,7 @@ class BlobsMaker(BaseMaker):
         return TensorDataset(torch.tensor(X), torch.tensor(y))
 
 if __name__ == '__main__':
-    maker = BlobsMaker(size=1200)
+    maker = BlobsMaker(size=1000)
 
     train_set = maker.get_train_set()
     valid_set = maker.get_valid_set()
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     from pathlib import Path
 
     pastel = plt.get_cmap('Pastel1')
-    cm = ListedColormap([pastel(0), pastel(1), pastel(2)])
+    cm = ListedColormap([pastel(0), pastel(1), pastel(2), pastel(3)])
 
     fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(16, 4))
 

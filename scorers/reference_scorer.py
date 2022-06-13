@@ -11,9 +11,9 @@ class ReferenceScorer:
             torch.mean(logits, dim=1).cpu().numpy(), 
             self.references.cpu().numpy(),
             self.rank)
-        return torch.tensor(score)
+        return {'score': torch.tensor(score)}
     
-    def make_reference(self, logits:torch.Tensor):
+    def add_reference(self, logits:torch.Tensor):
         self.references.append(torch.mean(logits, dim=1))
     
     def make_rank(self):

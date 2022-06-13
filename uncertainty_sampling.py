@@ -17,15 +17,14 @@ from scorers.least_scorer import LeastConfidenceScorer
 from scorers.margin_scorer import MarginConfidenceScorer
 from scorers.ratio_scorer import RatioConfidenceScorer
 from scorers.entropy_scorer import EntropyConfidenceScorer
-from scorers.random_scorer import RandomConfidenceScorer
-from samplers.base import BaseSampler
+from samplers.base_sampler import BaseSampler
 
 def main():
     parser = argparse.ArgumentParser(description='Uncertainty Sampling')
 
     parser.add_argument(
         '--algorithm', '-a', required=True, type=str,
-        choices=['least', 'margin', 'ratio', 'entropy', 'random'])
+        choices=['least', 'margin', 'ratio', 'entropy'])
     
     parser.add_argument(
         '--data', '-d', required=True, type=str,
@@ -47,8 +46,8 @@ def main():
         maker = GaussianMaker(size=1000)
         num_classes = 2
     elif args.data == 'blobs':
-        maker = BlobsMaker(size=1200)
-        num_classes = 3
+        maker = BlobsMaker(size=1000)
+        num_classes = 4
 
     train_set = maker.get_train_set()
     test_set = maker.get_test_set()
@@ -103,9 +102,6 @@ def main():
     elif args.algorithm == 'entropy':
         scorer = EntropyConfidenceScorer()
         graph_title = 'Entropy Sampling'
-    elif args.algorithm == 'random':
-        scorer = RandomConfidenceScorer()
-        graph_title = 'Random Sampling'
 
     sampler = BaseSampler(scorer, num_samples=100)
     
@@ -184,7 +180,9 @@ def main():
                 logits = net(features)
                 probabilities = torch.softmax(logits, dim=1)
                 grid_probabilities.append(probabilities.to('cpu'))
-                scores = scorer(logits)
+                
+                outputs = scorer(logits)
+                scores = outputs['score']
                 grid_scores.append(scores.to('cpu'))
         grid_probabilities = torch.cat(grid_probabilities)
         grid_scores = torch.cat(grid_scores)

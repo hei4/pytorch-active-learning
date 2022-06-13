@@ -11,11 +11,14 @@ from datasets.moons import MoonsMaker
 from datasets.circles import CirclesMaker
 from datasets.gaussian import GaussianMaker
 from datasets.blobs import BlobsMaker
+
 from utils.draw import draw_graph
 from models.mlp import MLP
 from scorers.reference_scorer import ReferenceScorer
-from samplers.base import BaseSampler
-from samplers.reference import ReferenceSampler
+from scorers.kmeans_scorer import KMeansScorer
+from scorers.random_scorer import RandomScorer
+from samplers.base_sampler import BaseSampler
+from samplers.cluster_sampler import ClusterSampler
 
 def main():
     parser = argparse.ArgumentParser(description='Diversity Sampling')
@@ -44,8 +47,8 @@ def main():
         maker = GaussianMaker(size=1000)
         num_classes = 2
     elif args.data == 'blobs':
-        maker = BlobsMaker(size=1200)
-        num_classes = 3
+        maker = BlobsMaker(size=1000)
+        num_classes = 4
 
     train_set = maker.get_train_set()
     valid_set = maker.get_valid_set()
@@ -65,7 +68,7 @@ def main():
     train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
     valid_loader = DataLoader(valid_set, shuffle=False, drop_last=False, **kwargs)
     test_loader = DataLoader(test_set, shuffle=False, drop_last=False, **kwargs)
-    unlabeled_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)
+    unlabel_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)
     grid_loader = DataLoader(grid_set, shuffle=False, drop_last=False, **kwargs)
 
     ####
@@ -93,8 +96,17 @@ def main():
     if args.algorithm == 'outlier':
         scorer = ReferenceScorer()
         graph_title = 'Model-based Outlier Sampling'
-    sampler = BaseSampler(scorer, num_samples=100)
-    
+        sampler = BaseSampler(scorer, num_samples=100)
+    elif args.algorithm == 'cluster':
+        num_clusters = 4
+        scorer = KMeansScorer(num_clusters, batch_size=batch_size)
+        graph_title = 'Cluster-based Sampling'
+        sampler = ClusterSampler(scorer, num_clusters, samples_per_cluster=25, samples_per_centroid=1, samples_per_outlier=1)
+    elif args.algorithm == 'random':
+        scorer = RandomScorer()
+        graph_title = 'Random Sampling'
+        sampler = BaseSampler(scorer, num_samples=100)
+
     ####
     # 学習
     ####
@@ -143,27 +155,41 @@ def main():
         metric.reset()
 
         ####
-        # 検証データ
+        # サンプリングのためのスコアラーの準備
         ####
-        net.eval()
-        for features, _ in valid_loader:
-            features = features.to(device, non_blocking=True)
+        if args.algorithm == 'outlier':
+            net.eval()
+            for features, _ in valid_loader:
+                features = features.to(device, non_blocking=True)
 
-            with torch.inference_mode():
-                logits = net(features)
-                scorer.make_reference(logits)
-        scorer.make_rank()
+                with torch.inference_mode():
+                    logits = net(features)
+                    scorer.add_reference(logits)
+            scorer.make_rank()
+
+        elif args.algorithm == 'cluster':
+            net.eval()
+            for features, _ in unlabel_loader:
+                scorer.add_features(features)
+                scorer.update_centroids(features)
+            scorer.compute_normalize_value()
 
         ####
         # ラベルなしデータ
         ####
-        net.eval()
-        for features, _ in unlabeled_loader:
-            features = features.to(device, non_blocking=True)
+        if args.algorithm in ['outlier', 'random']:
+            net.eval()
+            for features, _ in unlabel_loader:
+                features = features.to(device, non_blocking=True)
 
-            with torch.inference_mode():
-                logits = net(features)
-                sampler.scoring(logits)
+                with torch.inference_mode():
+                    logits = net(features)
+                    sampler.scoring(logits)
+        
+        elif args.algorithm == 'cluster':
+            net.eval()
+            for features, _ in unlabel_loader:
+                sampler.scoring(features)
 
         sampling_indices, rest_indices = sampler.sampling()
 
@@ -181,8 +207,16 @@ def main():
                 logits = net(features)
                 probabilities = torch.softmax(logits, dim=1)
                 grid_probabilities.append(probabilities.to('cpu'))
-                scores = scorer(logits)
+                
+                if args.algorithm in ['outlier', 'random']:
+                    scorer_inputs = logits
+                elif args.algorithm == 'cluster':
+                    scorer_inputs = features.to('cpu')
+
+                outputs = scorer(scorer_inputs)
+                scores = outputs['score']
                 grid_scores.append(scores.to('cpu'))
+
         grid_probabilities = torch.cat(grid_probabilities)
         grid_scores = torch.cat(grid_scores)
 
@@ -210,7 +244,7 @@ def main():
         train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
 
         unlabeled_set = Subset(unlabeled_set, rest_indices)
-        unlabeled_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)        
+        unlabel_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)        
 
         ####
         # リセット
