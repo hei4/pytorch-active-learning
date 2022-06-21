@@ -12,6 +12,7 @@ from datasets.circles import CirclesMaker
 from datasets.gaussian import GaussianMaker
 from datasets.blobs import BlobsMaker
 from utils.draw import draw_graph
+from utils.util import set_random_state
 from models.mlp import MLP
 from scorers.least_scorer import LeastConfidenceScorer
 from scorers.margin_scorer import MarginConfidenceScorer
@@ -30,23 +31,32 @@ def main():
         '--data', '-d', required=True, type=str,
         choices=['moons', 'circles', 'gaussian', 'blobs'])
     
+    parser.add_argument(
+        '--random_state', '-r', default=0, type=int
+    )
+
     args = parser.parse_args()
+
+    ####
+    # 乱数設定
+    ####
+    set_random_state(args.random_state)
 
     ####
     # データセット/データローダー
     ####
 
     if args.data == 'moons':
-        maker = MoonsMaker(size=1000)
+        maker = MoonsMaker(size=1000, random_state=args.random_state)
         num_classes = 2
     elif args.data == 'circles':
-        maker = CirclesMaker(size=2000)
+        maker = CirclesMaker(size=2000, random_state=args.random_state)
         num_classes = 2
     elif args.data == 'gaussian':
-        maker = GaussianMaker(size=1000)
+        maker = GaussianMaker(size=1000, random_state=args.random_state)
         num_classes = 2
     elif args.data == 'blobs':
-        maker = BlobsMaker(size=1000)
+        maker = BlobsMaker(size=1000, random_state=args.random_state)
         num_classes = 4
 
     train_set = maker.get_train_set()
@@ -92,16 +102,16 @@ def main():
 
     if args.algorithm == 'least':
         scorer = LeastConfidenceScorer()
-        graph_title = 'Least Confidence Sampling'
+        graph_title = 'Least confidence sampling'
     elif args.algorithm == 'margin':
         scorer = MarginConfidenceScorer()
-        graph_title = 'Margin Confidence Sampling'
+        graph_title = 'Margin of confidence sampling'
     elif args.algorithm == 'ratio':
         scorer = RatioConfidenceScorer()
-        graph_title = 'Ratio Confidence Sampling'
+        graph_title = 'Ratio of confidence sampling'
     elif args.algorithm == 'entropy':
         scorer = EntropyConfidenceScorer()
-        graph_title = 'Entropy Sampling'
+        graph_title = 'Entropy-based sampling'
 
     sampler = BaseSampler(scorer, num_samples=100)
     
