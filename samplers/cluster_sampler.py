@@ -59,7 +59,7 @@ if __name__ == '__main__':
     from scorers.kmeans_scorer import KMeansScorer
 
     maker = MoonsMaker(1000)
-    unlabel_set = maker.get_unlabeled_set()
+    unlabel_set = maker.get_unlabel_set()
     num_clusters = 4
     batch_size = 100
     unlabel_loader = DataLoader(unlabel_set, batch_size)
@@ -69,9 +69,9 @@ if __name__ == '__main__':
 
     # セントロイドの作成
     for features, _ in unlabel_loader:
-        scorer.add_features(features)
+        scorer.regist_features(features)
         scorer.update_centroids(features)
-    scorer.compute_normalize_value()
+    scorer.post_process()
 
     # クラスタリング
     scores = []
