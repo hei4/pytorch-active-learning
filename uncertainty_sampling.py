@@ -1,6 +1,7 @@
 import os
 import argparse
 from pathlib import Path
+from readline import write_history_file
 import torch
 from torch import nn
 from torch import optim
@@ -17,7 +18,8 @@ from models.mlp import MLP
 from scorers.least_scorer import LeastConfidenceScorer
 from scorers.margin_scorer import MarginConfidenceScorer
 from scorers.ratio_scorer import RatioConfidenceScorer
-from scorers.entropy_scorer import EntropyConfidenceScorer
+from scorers.entropy_scorer import EntropyBasedScorer
+from scorers.montecarlo_scorer import MontecarloScorer
 from samplers.base_sampler import BaseSampler
 
 def main():
@@ -25,7 +27,7 @@ def main():
 
     parser.add_argument(
         '--algorithm', '-a', required=True, type=str,
-        choices=['least', 'margin', 'ratio', 'entropy'])
+        choices=['least', 'margin', 'ratio', 'entropy', 'montecarlo'])
     
     parser.add_argument(
         '--data', '-d', required=True, type=str,
@@ -61,7 +63,7 @@ def main():
 
     train_set = maker.get_train_set()
     test_set = maker.get_test_set()
-    unlabeled_set = maker.get_unlabeled_set()
+    unlabel_set = maker.get_unlabel_set()
     grid_set = maker.get_grid_set()
 
     batch_size = 100
@@ -75,7 +77,7 @@ def main():
 
     train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
     test_loader = DataLoader(test_set, shuffle=False, drop_last=False, **kwargs)
-    unlabeled_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)
+    unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)
     grid_loader = DataLoader(grid_set, shuffle=False, drop_last=False, **kwargs)
 
     ####
@@ -101,17 +103,20 @@ def main():
     ####
 
     if args.algorithm == 'least':
-        scorer = LeastConfidenceScorer()
+        scorer = LeastConfidenceScorer(net)
         graph_title = 'Least confidence sampling'
     elif args.algorithm == 'margin':
-        scorer = MarginConfidenceScorer()
+        scorer = MarginConfidenceScorer(net)
         graph_title = 'Margin of confidence sampling'
     elif args.algorithm == 'ratio':
-        scorer = RatioConfidenceScorer()
+        scorer = RatioConfidenceScorer(net)
         graph_title = 'Ratio of confidence sampling'
     elif args.algorithm == 'entropy':
-        scorer = EntropyConfidenceScorer()
+        scorer = EntropyBasedScorer(net)
         graph_title = 'Entropy-based sampling'
+    elif args.algorithm == 'montecarlo':
+        scorer = MontecarloScorer(net)
+        graph_title = 'Monte Carlo dropout sampling'
 
     sampler = BaseSampler(scorer, num_samples=100)
     
@@ -166,34 +171,33 @@ def main():
         # ラベルなしデータ
         ####
         net.eval()
-        for features, _ in unlabeled_loader:
+        for features, _ in unlabel_loader:
             features = features.to(device, non_blocking=True)
-
-            with torch.inference_mode():
-                logits = net(features)
-                sampler.scoring(logits)
+            sampler.scoring(features)
 
         sampling_indices, rest_indices = sampler.sampling()
         sampler.reset()
 
-        sampled_set = Subset(unlabeled_set, sampling_indices)
+        sampled_set = Subset(unlabel_set, sampling_indices)
 
         ####
         # グリッドデータ
         ####
-        net.eval()
         grid_probabilities = []
         grid_scores = []
         for features, _ in grid_loader:
             features = features.to(device, non_blocking=True)
+
+            net.eval()
             with torch.inference_mode():
                 logits = net(features)
                 probabilities = torch.softmax(logits, dim=1)
                 grid_probabilities.append(probabilities.to('cpu'))
-                
-                outputs = scorer(logits)
-                scores = outputs['score']
-                grid_scores.append(scores.to('cpu'))
+
+            outputs = scorer(features)
+            scores = outputs['score']
+            grid_scores.append(scores.detach().to('cpu'))
+
         grid_probabilities = torch.cat(grid_probabilities)
         grid_scores = torch.cat(grid_scores)
 
@@ -220,8 +224,8 @@ def main():
         train_set = ConcatDataset([train_set, sampled_set])
         train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
 
-        unlabeled_set = Subset(unlabeled_set, rest_indices)
-        unlabeled_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)        
+        unlabel_set = Subset(unlabel_set, rest_indices)
+        unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)        
         
 if __name__ == '__main__':
     main()
