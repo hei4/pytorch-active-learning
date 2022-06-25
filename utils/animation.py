@@ -2,17 +2,16 @@ import argparse
 from PIL import Image
 from pathlib import Path
 
-
 def main():
     parser = argparse.ArgumentParser(description='Making Animation')
 
     parser.add_argument(
-        '--algorithm', '-a', required=True, type=str,
-        choices=['least', 'margin', 'ratio', 'entropy', 'random', 'outlier'])
-    
-    parser.add_argument(
         '--data', '-d', required=True, type=str,
         choices=['moons', 'circles', 'gaussian', 'blobs'])
+
+    parser.add_argument(
+        '--algorithm', '-a', required=True, type=str,
+        choices=['least', 'margin', 'ratio', 'entropy', 'montecarlo', 'outlier', 'cluster', 'random'])
     
     args = parser.parse_args()
 
@@ -23,7 +22,7 @@ def main():
 
     images = []
     for filename in filenames:
-        image = Image.open(filename)
+        image = Image.open(filename).quantize(colors=256, method=2)     # method 2: fast octree
         images.append(image)
     
     #gifアニメを出力する

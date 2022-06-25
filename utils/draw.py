@@ -63,13 +63,16 @@ def draw_graph(
         is_contour = True
         cm = ListedColormap(['paleturquoise', 'lightcoral'])
         grid_probabilities = grid_probabilities[:, 0].reshape(101, 101)    
-    elif grid_probabilities.shape[1] == 3:
+    else:
+        num_dim = grid_probabilities.shape[1]
         is_contour = False
 
-        cm = plt.get_cmap('tab10')
-        colors = np.array([list(cm(0)), list(cm(1)), list(cm(2))])
+        cm = plt.get_cmap('Pastel1')
+        
+        # colors = np.array([list(cm(0)), list(cm(1)), list(cm(2)), list(cm(3))])
+        colors = np.array([list(cm(i)) for i in range(num_dim)])
         colors = colors[:, :3]
-        white = np.ones([3, 3], dtype=np.float64)
+        white = np.ones_like(colors, dtype=np.float64)
 
         grid_probabilities = grid_probabilities[:, :, np.newaxis]
         grid_colors = grid_probabilities * colors + (1. - grid_probabilities) * white
