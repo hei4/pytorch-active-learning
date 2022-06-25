@@ -1,6 +1,8 @@
 # pytorch-active-learning
 
-Active Learning with PyTorch
+**Active Learning with PyTorch**
+
+This implementation is based on ["Human-in-the-Loop Machine Learning: Active learning and annotation for human-centered AI"](https://www.manning.com/books/human-in-the-loop-machine-learning). official repository: [URL](https://github.com/rmunro/pytorch_active_learning)
 
 ![](./results/moons/least/moons_least.gif)
 
