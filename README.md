@@ -45,11 +45,11 @@ python uncertainty_sampling.py --algorithm {least,margin,ratio,entropy,montecarl
 
 ### Examples
 
-Entropy-based sampling, make_gaussian_quantiles dataset
+Entropy-based sampling & make_gaussian_quantiles dataset
 
 ![](./results/gaussian/entropy/gaussian_entropy.gif)
 
-Monte Carlo dropout sampling, make_moons dataset
+Monte Carlo dropout sampling & make_moons dataset
 
 ![](./results/moons/montecarlo/moons_montecarlo.gif)
 
@@ -73,10 +73,10 @@ python diversity_sampling.py --algorithm {outlier,cluster,random} --data {moons,
 
 ### Examples
 
-Model-based outlier sampling, make_gaussian_quantiles dataset
+Model-based outlier sampling & make_gaussian_quantiles dataset
 
 ![](./results/gaussian/outlier/gaussian_outlier.gif)
 
-Cluster-based sampling, make_moons dataset
+Cluster-based sampling & make_moons dataset
 
 ![](./results/moons/cluster/moons_cluster.gif)
