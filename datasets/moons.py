@@ -18,7 +18,7 @@ class MoonsMaker(BaseMaker):
         self.train_set = self.make_dataset(size_per_class, random_state)
         self.valid_set = self.make_dataset(size_per_class, random_state+1)
         self.test_set = self.make_dataset(size_per_class, random_state+2)
-        self.unlabeled_set = self.make_dataset(10*size_per_class, random_state+3)
+        self.unlabel_set = self.make_dataset(10*size_per_class, random_state+3)
 
         space = torch.linspace(-2., 2., steps=101)
         grid_x, grid_y = torch.meshgrid(space, space, indexing='ij')
@@ -42,15 +42,15 @@ if __name__ == '__main__':
 
     train_set = maker.get_train_set()
     valid_set = maker.get_valid_set()
-    unlabeled_set = maker.get_unlabeled_set()
+    unlabel_set = maker.get_unlabel_set()
     test_set = maker.get_test_set()
     grid_set = maker.get_grid_set()
 
-    print(f'train:     {len(train_set)}')
-    print(f'valid:     {len(valid_set)}')
-    print(f'test:      {len(test_set)}')
-    print(f'unlabeled: {len(unlabeled_set)}')
-    print(f'grid:      {len(grid_set)}')
+    print(f'train:   {len(train_set)}')
+    print(f'valid:   {len(valid_set)}')
+    print(f'test:    {len(test_set)}')
+    print(f'unlabel: {len(unlabel_set)}')
+    print(f'grid:    {len(grid_set)}')
 
     feature, label = train_set[0]
     print(f'feature... {feature.shape} {feature.dtype}')
@@ -83,14 +83,14 @@ if __name__ == '__main__':
     test_features = torch.stack(test_features, dim=0)
     test_labels = torch.stack(test_labels)
     
-    # stack unlabeled data
-    unlabeled_features = []
-    unlabeled_labels = []
-    for feature, label in unlabeled_set:
-        unlabeled_features.append(feature)
-        unlabeled_labels.append(label)
-    unlabeled_features = torch.stack(unlabeled_features, dim=0)
-    unlabeled_labels = torch.stack(unlabeled_labels)
+    # stack unlabel data
+    unlabel_features = []
+    unlabel_labels = []
+    for feature, label in unlabel_set:
+        unlabel_features.append(feature)
+        unlabel_labels.append(label)
+    unlabel_features = torch.stack(unlabel_features, dim=0)
+    unlabel_labels = torch.stack(unlabel_labels)
 
     from matplotlib import pyplot as plt
     from matplotlib.colors import ListedColormap
@@ -126,8 +126,8 @@ if __name__ == '__main__':
 
     axs[3].set_aspect('equal')
     axs[3].scatter(
-        unlabeled_features[:, 0], unlabeled_features[:, 1],
-        c=unlabeled_labels, cmap=cm, alpha=0.5,
+        unlabel_features[:, 0], unlabel_features[:, 1],
+        c=unlabel_labels, cmap=cm, alpha=0.5,
         marker='o', s=8, edgecolor='black', linewidth=0.1)
     axs[3].set_xlim(-2, 2)
     axs[3].set_ylim(-2, 2)
