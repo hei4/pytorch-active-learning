@@ -20,19 +20,17 @@ class KMeansScorer:
         scores = 1. - distances[torch.arange(len(distances)), cluster_labels]
         return {'score': scores, 'cluster_label': cluster_labels}
 
-    def add_features(self, features):
-        self.features.append(features)
-
-    def update_centroids(self, features):
-        self.kmeans.partial_fit(features.numpy())
-
     def get_distances(self, features):
-        return torch.tensor(self.kmeans.transform(features.numpy()), dtype=torch.float32)
+        return torch.tensor(self.kmeans.transform(features.cpu().numpy()), dtype=torch.float32)
     
     def get_cluster_labels(self, features):
-        return torch.tensor(self.kmeans.predict(features.numpy()), dtype=torch.int64)
+        return torch.tensor(self.kmeans.predict(features.cpu().numpy()), dtype=torch.int64)
 
-    def compute_normalize_value(self):
+    def regist_features(self, features):
+        self.features.append(features)
+        self.kmeans.partial_fit(features.cpu().numpy())
+
+    def post_process(self):
         self.features = torch.cat(self.features)
 
         distances = self.get_distances(self.features)
@@ -58,7 +56,7 @@ if __name__ == '__main__':
     from datasets.moons import MoonsMaker
 
     maker = MoonsMaker(1000)
-    unlabel_set = maker.get_unlabeled_set()
+    unlabel_set = maker.get_unlabel_set()
     num_clusters = 4
     batch_size = 100
     unlabel_loader = DataLoader(unlabel_set, batch_size)
@@ -67,9 +65,9 @@ if __name__ == '__main__':
 
     # セントロイドの作成
     for features, _ in unlabel_loader:
-        scorer.add_features(features)
+        scorer.regist_features(features)
         scorer.update_centroids(features)
-    scorer.compute_normalize_value()
+    scorer.post_process()
 
     # クラスタリング
     scores = []

@@ -1,16 +1,40 @@
 import torch
+from model_base_scorer import ModelBaseScorer
 
-class MarginConfidenceScorer:
-    def __call__(self, logits:torch.Tensor):
+class MarginConfidenceScorer(ModelBaseScorer):
+    def calc_scores_from_logits(self, logits:torch.Tensor):
         probabilities = torch.softmax(logits, dim=1)
         topk_prob = torch.topk(probabilities, k=2, dim=1).values
         diff_prob = topk_prob[:, 0] - topk_prob[:, 1]
 
-        return {'score': 1. - diff_prob}
-
+        return 1. - diff_prob
 
 if __name__ == '__main__':
-    scorer = MarginConfidenceScorer()
+    import sys
+    from pathlib import Path
+    sys.path.append(str(Path(__file__).parents[1]))
+
+    from models.mlp import MLP
+
+    num_classes = 2
+    net = MLP(num_classes=num_classes)
+    scorer = MarginConfidenceScorer(net)
+
+    features = torch.tensor([
+        [-1., -1.],
+        [-1., 0.],
+        [-1., 1.],
+        [0., -1.],
+        [0., 0.],
+        [0., 1.],
+        [1., -1.],
+        [1., 0.],
+        [1., 1.]], dtype=torch.float32)
+    print(f'features: {features}')
+    
+    outputs = scorer(features)
+    scores = outputs['score']
+    print(f'scores: {scores}')
 
     logits = torch.tensor([
         [-1., 0., 1.],
@@ -18,10 +42,6 @@ if __name__ == '__main__':
         [0., 1., 10.],
         [0., 10., 100.]], dtype=torch.float32)
     print(f'logits: {logits}')
-    
-    probabilities = torch.softmax(logits, dim=1)
-    print(f'probabilities: {probabilities}')
 
-    outputs = scorer(logits)
-    scores = outputs['score']
+    scores = scorer.calc_scores_from_logits(logits)
     print(f'scores: {scores}')
