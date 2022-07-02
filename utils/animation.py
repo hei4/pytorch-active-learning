@@ -11,7 +11,7 @@ def main():
 
     parser.add_argument(
         '--algorithm', '-a', required=True, type=str,
-        choices=['least', 'margin', 'ratio', 'entropy', 'montecarlo', 'outlier', 'cluster', 'random'])
+        choices=['least', 'margin', 'ratio', 'entropy', 'montecarlo', 'outlier', 'cluster', 'random', 'least_cluster', 'margin_outlier', 'cluster_entropy'])
     
     args = parser.parse_args()
 

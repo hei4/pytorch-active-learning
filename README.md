@@ -33,7 +33,7 @@ python uncertainty_sampling.py --algorithm {least,margin,ratio,entropy,montecarl
 
 - algorithm
   - least: Least condidence sampling
-  - marging: Margin of confidence sampling
+  - margin: Margin of confidence sampling
   - ratio: Ratio of confidence sampling
   - entropy: Entropy-based sampling
   - montecarlo: Monte Carlo dropout sampling
@@ -56,6 +56,8 @@ Monte Carlo dropout sampling & make_moons dataset
 ---
 
 ## Diversity Sampling
+
+### Usage
 
 ```
 python diversity_sampling.py --algorithm {outlier,cluster,random} --data {moons,circles,gaussian,blobs}
@@ -80,3 +82,30 @@ Model-based outlier sampling & make_gaussian_quantiles dataset
 Cluster-based sampling & make_moons dataset
 
 ![](./results/moons/cluster/moons_cluster.gif)
+
+---
+
+## Advanced active learning
+
+### Least confidence with cluster-based sampling
+
+```
+python least_cluster_sampling.py --data {moons,circles,gaussian,blobs}
+```
+
+![](./results/moons/least_cluster/moons_least_cluster.gif)
+
+### Margin of confidence with model-based outlier sampling
+
+```
+python margin_outlier_sampling.py --data {moons,circles,gaussian,blobs}
+```
+
+![](./results/moons/margin_outlier/moons_margin_outlier.gif)
+
+### Sampling from the highest entropy cluster
+
+```
+python cluster_entropy_sampling.py --data {moons,circles,gaussian,blobs}
+```
+![](./results/moons/cluster_entropy/moons_cluster_entropy.gif)
