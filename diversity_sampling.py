@@ -61,7 +61,7 @@ def main():
     train_set = maker.get_train_set()
     valid_set = maker.get_valid_set()
     test_set = maker.get_test_set()
-    unlabeled_set = maker.get_unlabel_set()
+    unlabel_set = maker.get_unlabel_set()
     grid_set = maker.get_grid_set()
 
     batch_size = 100
@@ -76,7 +76,7 @@ def main():
     train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
     valid_loader = DataLoader(valid_set, shuffle=False, drop_last=False, **kwargs)
     test_loader = DataLoader(test_set, shuffle=False, drop_last=False, **kwargs)
-    unlabel_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)
+    unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)
     grid_loader = DataLoader(grid_set, shuffle=False, drop_last=False, **kwargs)
 
     ####
@@ -106,7 +106,12 @@ def main():
         num_clusters = 4
         scorer = KMeansScorer(num_clusters, batch_size=batch_size)
         graph_title = 'Cluster-based Sampling'
-        sampler = ClusterSampler(scorer, num_clusters, samples_per_cluster=25, samples_per_centroid=1, samples_per_outlier=1)
+        sampler = ClusterSampler(
+            scorer,
+            num_clusters,
+            samples_per_cluster=25,
+            samples_per_centroid=1,
+            samples_per_outlier=1)
     elif args.algorithm == 'random':
         scorer = RandomScorer()
         graph_title = 'Random Sampling'
@@ -177,7 +182,7 @@ def main():
 
         sampling_indices, rest_indices = sampler.sampling()
 
-        sampled_set = Subset(unlabeled_set, sampling_indices)
+        sampled_set = Subset(unlabel_set, sampling_indices)
 
         ####
         # グリッドデータ
@@ -222,8 +227,8 @@ def main():
         train_set = ConcatDataset([train_set, sampled_set])
         train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
 
-        unlabeled_set = Subset(unlabeled_set, rest_indices)
-        unlabel_loader = DataLoader(unlabeled_set, shuffle=False, drop_last=False, **kwargs)        
+        unlabel_set = Subset(unlabel_set, rest_indices)
+        unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)        
 
         ####
         # リセット

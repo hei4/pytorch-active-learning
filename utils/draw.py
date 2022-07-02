@@ -18,7 +18,8 @@ def draw_graph(
     test_set,
     grid_set,
     grid_probabilities,
-    grid_scores):
+    grid_scores,
+    auxiliary_scores=None):
 
     train_features = []
     train_labels = []
@@ -81,6 +82,8 @@ def draw_graph(
         grid_colors = grid_colors.reshape(101, 101, 3)        
         
     grid_scores = grid_scores.reshape(101, 101).numpy()
+    if auxiliary_scores is not None:
+        auxiliary_scores = auxiliary_scores.reshape(101, 101).numpy()
 
     levels = np.linspace(0, 1, 21)
 
@@ -101,6 +104,8 @@ def draw_graph(
     grid.cbar_axes[0].colorbar(colorbar)
     if grid_scores.max() - grid_scores.min() < 1e-6:
         grid.cbar_axes[0].tick_params(labelright=False)
+    if auxiliary_scores is not None:
+        grid[0].contour(grid_X, grid_Y, auxiliary_scores, cmap='bone', alpha=0.2, linestyles='--')
     grid[0].scatter(
         train_features[:, 0], train_features[:, 1],
         c=cm(train_labels), alpha=0.5,
