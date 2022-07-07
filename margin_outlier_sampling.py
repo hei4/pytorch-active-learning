@@ -93,7 +93,7 @@ def main():
     # スコアラー/サンプラー
     ####
     uncertainty_scorer = MarginConfidenceScorer(net)
-    uncertainty_sampler = BaseSampler(uncertainty_scorer, num_samples=1000)
+    uncertainty_sampler = BaseSampler(uncertainty_scorer, num_samples=2000)
 
     diversity_scorer = ReferenceScorer(net)
     diversity_sampler = BaseSampler(diversity_scorer, num_samples=100)

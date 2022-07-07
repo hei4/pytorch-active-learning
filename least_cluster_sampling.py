@@ -69,7 +69,6 @@ def main():
     }
 
     train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
-    valid_loader = DataLoader(valid_set, shuffle=False, drop_last=False, **kwargs)
     test_loader = DataLoader(test_set, shuffle=False, drop_last=False, **kwargs)
     unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)
     grid_loader = DataLoader(grid_set, shuffle=False, drop_last=False, **kwargs)
@@ -94,7 +93,7 @@ def main():
     # スコアラー/サンプラー
     ####
     uncertainty_scorer = LeastConfidenceScorer(net)
-    uncertainty_sampler = BaseSampler(uncertainty_scorer, num_samples=5000)
+    uncertainty_sampler = BaseSampler(uncertainty_scorer, num_samples=2000)
 
     num_clusters = 4
     diversity_scorer = KMeansScorer(num_clusters, batch_size=batch_size)
