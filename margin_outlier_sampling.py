@@ -15,7 +15,7 @@ from utils.draw import draw_graph
 from utils.util import set_random_state
 from models.mlp import MLP
 from scorers.margin_scorer import MarginConfidenceScorer
-from scorers.reference_scorer import ReferenceScorer
+from scorers.logit_scorer import LogitScorer
 from samplers.base_sampler import BaseSampler
 
 def main():
@@ -95,7 +95,7 @@ def main():
     uncertainty_scorer = MarginConfidenceScorer(net)
     uncertainty_sampler = BaseSampler(uncertainty_scorer, num_samples=2000)
 
-    diversity_scorer = ReferenceScorer(net)
+    diversity_scorer = LogitScorer(net)
     diversity_sampler = BaseSampler(diversity_scorer, num_samples=100)
 
     graph_title = 'Margin of confidence with model-based outlier sampling'

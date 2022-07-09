@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-class ReferenceScorer:
+class LogitScorer:
     def __init__(self, net):
         self.net = net
         self.references = []
@@ -15,8 +15,6 @@ class ReferenceScorer:
         scores = []
         for i in range(logits.shape[1]):
             score = np.interp(
-                # torch.mean(logits, dim=1).cpu().numpy(),
-                # torch.min(logits, dim=1).values.cpu().numpy(),
                 logits[:, i].cpu().numpy(),
                 self.references[:, i].cpu().numpy(),
                 self.rank)
@@ -29,12 +27,9 @@ class ReferenceScorer:
         self.net.eval()
         with torch.inference_mode():
             logits = self.net(features)
-            # self.references.append(torch.mean(logits, dim=1))
-            # self.references.append(torch.min(logits, dim=1).values)
             self.references.append(logits)
     
     def post_process(self):
-        # self.references = torch.cat(self.references).sort().values
         self.references = torch.cat(self.references)
         for i in range(self.references.shape[1]):
             self.references[:, i] = self.references[:, i].sort().values

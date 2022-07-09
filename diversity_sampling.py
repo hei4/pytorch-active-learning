@@ -14,7 +14,7 @@ from datasets.blobs import BlobsMaker
 from utils.draw import draw_graph
 from utils.util import set_random_state
 from models.mlp import MLP
-from scorers.reference_scorer import ReferenceScorer
+from scorers.logit_scorer import LogitScorer
 from scorers.kmeans_scorer import KMeansScorer
 from scorers.random_scorer import RandomScorer
 from samplers.base_sampler import BaseSampler
@@ -99,7 +99,7 @@ def main():
     # スコアラー/サンプラー
     ####
     if args.algorithm == 'outlier':
-        scorer = ReferenceScorer(net)
+        scorer = LogitScorer(net)
         graph_title = 'Model-based Outlier Sampling'
         sampler = BaseSampler(scorer, num_samples=100)
     elif args.algorithm == 'cluster':
@@ -120,7 +120,6 @@ def main():
     ####
     # 学習
     ####
-
     max_epoch = 30
     for epoch in range(1, max_epoch+1):
 
