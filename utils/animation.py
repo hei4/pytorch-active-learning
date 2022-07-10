@@ -7,11 +7,24 @@ def main():
 
     parser.add_argument(
         '--data', '-d', required=True, type=str,
-        choices=['moons', 'circles', 'gaussian', 'blobs'])
+        choices=['moons', 'circles', 'gaussian', 'blobs',])
 
     parser.add_argument(
         '--algorithm', '-a', required=True, type=str,
-        choices=['least', 'margin', 'ratio', 'entropy', 'montecarlo', 'outlier', 'cluster', 'random', 'least_cluster', 'margin_outlier', 'cluster_entropy'])
+        choices=[
+            'least',
+            'margin',
+            'ratio',
+            'entropy',
+            'montecarlo',
+            'outlier',
+            'cluster',
+            'random',
+            'least_cluster',
+            'margin_outlier',
+            'cluster_entropy',
+            'transfer',
+            'adaptive'])
     
     args = parser.parse_args()
 

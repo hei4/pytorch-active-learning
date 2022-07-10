@@ -108,4 +108,27 @@ python margin_outlier_sampling.py --data {moons,circles,gaussian,blobs}
 ```
 python cluster_entropy_sampling.py --data {moons,circles,gaussian,blobs}
 ```
+
 ![](./results/moons/cluster_entropy/moons_cluster_entropy.gif)
+
+
+---
+
+## Active transfer learning
+
+### Active transfer learning for uncertainty sampling
+
+```
+python least_cluster_sampling.py --data {moons,circles,gaussian,blobs}
+```
+
+![](./results/moons/transfer/moons_transfer.gif)
+
+
+### Adaptive active transfer learning for uncertainty sampling
+
+```
+python least_cluster_sampling.py --data {moons,circles,gaussian,blobs} --adaptive
+```
+
+![](./results/moons/adaptive/moons_adaptive.gif)

@@ -1,16 +1,10 @@
-import re
 import torch
 from torch import nn
+from models.dropout_mlp import DropoutMLP
 
 class MontecarloScorer:
-    def __init__(self, net, num_repeats=50) -> None:
-        layers = []
-        for layer in net.layers[:-1]:
-             layers.append(layer)
-             layers.append(nn.Dropout())
-        layers.append(net.layers[-1])
-
-        self.net = nn.Sequential(*layers)
+    def __init__(self, net, num_repeats=50) -> None:        
+        self.net = DropoutMLP(net)
         self.num_repeats = num_repeats
 
     def __call__(self, features:torch.Tensor):
