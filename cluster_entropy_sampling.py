@@ -227,7 +227,8 @@ def main():
             grid_set,
             grid_probabilities,
             uncertainty_scores,
-            diversity_scores)
+            auxiliary_set=unlabel_set,
+            auxiliary_scores=diversity_scores)
         
         ####
         # データセット変更

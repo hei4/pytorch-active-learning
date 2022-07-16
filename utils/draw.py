@@ -19,6 +19,7 @@ def draw_graph(
     grid_set,
     grid_probabilities,
     grid_scores,
+    auxiliary_set=None,
     auxiliary_scores=None):
 
     train_features = []
@@ -70,7 +71,6 @@ def draw_graph(
 
         cm = plt.get_cmap('Pastel1')
         
-        # colors = np.array([list(cm(0)), list(cm(1)), list(cm(2)), list(cm(3))])
         colors = np.array([list(cm(i)) for i in range(num_dim)])
         colors = colors[:, :3]
         white = np.ones_like(colors, dtype=np.float64)
@@ -82,43 +82,83 @@ def draw_graph(
         grid_colors = grid_colors.reshape(101, 101, 3)        
         
     grid_scores = grid_scores.reshape(101, 101).numpy()
-    if auxiliary_scores is not None:
-        auxiliary_scores = auxiliary_scores.reshape(101, 101).numpy()
 
     levels = np.linspace(0, 1, 21)
 
-    fig = plt.figure(1, figsize=(10, 5), facecolor='white')
-    fig.suptitle(graph_title, fontsize=16)
-    
-    grid = ImageGrid(
-        fig,
-        111,
-        nrows_ncols=(1, 2),
-        axes_pad=1.,
-        cbar_location='right' if is_contour==True else None,
-        cbar_mode='each' if is_contour==True else None,
-        cbar_pad=0.1)
+    if auxiliary_set is None:
+        fig = plt.figure(1, figsize=(10, 5), facecolor='white')
+        fig.suptitle(graph_title, fontsize=16)
+        
+        grid = ImageGrid(
+            fig,
+            111,
+            nrows_ncols=(1, 2),
+            axes_pad=1.,
+            cbar_location='right' if is_contour==True else None,
+            cbar_mode='each' if is_contour==True else None,
+            cbar_pad=0.1)
+        
+        train_grid_index = 0
+        test_grid_index = 1
+    else:
+        auxiliary_features = []
+        auxiliary_labels = []
+        for features, labels in auxiliary_set:
+            auxiliary_features.append(features)
+            auxiliary_labels.append(labels)
+        auxiliary_features = torch.stack(auxiliary_features).numpy()
+        auxiliary_labels = torch.stack(auxiliary_labels).numpy()
 
-    grid[0].set_aspect('equal')
-    colorbar = grid[0].contourf(grid_X, grid_Y, grid_scores, cmap='viridis', alpha=0.2)
-    grid.cbar_axes[0].colorbar(colorbar)
+        auxiliary_scores = auxiliary_scores.reshape(101, 101).numpy()
+
+        fig = plt.figure(1, figsize=(15, 5), facecolor='white')
+        fig.suptitle(graph_title, fontsize=16)
+        
+        grid = ImageGrid(
+            fig,
+            111,
+            nrows_ncols=(1, 3),
+            axes_pad=1.,
+            cbar_location='right' if is_contour==True else None,
+            cbar_mode='each' if is_contour==True else None,
+            cbar_pad=0.1)
+        
+        train_grid_index = 1
+        test_grid_index = 2
+
+        grid[0].set_aspect('equal')
+        colorbar = grid[0].contourf(grid_X, grid_Y, auxiliary_scores, cmap='viridis', alpha=0.2)
+        grid.cbar_axes[0].colorbar(colorbar)
+        if auxiliary_scores.max() - auxiliary_scores.min() < 1e-6:
+            grid.cbar_axes[0].tick_params(labelright=False)
+        grid[0].scatter(
+            auxiliary_features[:, 0], auxiliary_features[:, 1],
+            facecolor='none', alpha=1.0,
+            marker='o', s=8, edgecolor='grey', linewidth=0.1)
+        grid[0].set_xlim(xmin, xmax)
+        grid[0].set_ylim(ymin, ymax)
+        grid[0].set_xticks(np.linspace(xmin, xmax, 5))
+        grid[0].set_yticks(np.linspace(ymin, ymax, 5))
+        grid[0].set_title('The first step in sampling', fontsize=10)
+
+    grid[train_grid_index].set_aspect('equal')
+    colorbar = grid[train_grid_index].contourf(grid_X, grid_Y, grid_scores, cmap='viridis', alpha=0.2)
+    grid.cbar_axes[train_grid_index].colorbar(colorbar)
     if grid_scores.max() - grid_scores.min() < 1e-6:
-        grid.cbar_axes[0].tick_params(labelright=False)
-    if auxiliary_scores is not None:
-        grid[0].contour(grid_X, grid_Y, auxiliary_scores, cmap='bone', alpha=0.2, linestyles='--')
-    grid[0].scatter(
+        grid.cbar_axes[train_grid_index].tick_params(labelright=False)
+    grid[train_grid_index].scatter(
         train_features[:, 0], train_features[:, 1],
         c=cm(train_labels), alpha=0.5,
         marker='o', s=8, edgecolor='black', linewidth=0.1)
-    grid[0].scatter(
+    grid[train_grid_index].scatter(
         sampled_features[:, 0], sampled_features[:, 1],
         c=cm(sampled_labels), alpha=1.0,
         marker='o', s=24, edgecolor='black', linewidth=0.1)
-    grid[0].set_xlim(xmin, xmax)
-    grid[0].set_ylim(ymin, ymax)
-    grid[0].set_xticks(np.linspace(xmin, xmax, 5))
-    grid[0].set_yticks(np.linspace(ymin, ymax, 5))
-    grid[0].set_title('Training & Sampled Data / Score Distribution', fontsize=10)
+    grid[train_grid_index].set_xlim(xmin, xmax)
+    grid[train_grid_index].set_ylim(ymin, ymax)
+    grid[train_grid_index].set_xticks(np.linspace(xmin, xmax, 5))
+    grid[train_grid_index].set_yticks(np.linspace(ymin, ymax, 5))
+    grid[train_grid_index].set_title('Training & Sampled Data / Score Distribution', fontsize=10)
 
     legend_elements = [
         Line2D(
@@ -129,32 +169,32 @@ def draw_graph(
             [0], [0], linestyle='none', marker='o',
             markeredgewidth=0.1, markeredgecolor='black', markerfacecolor='grey',
             alpha=0.5, markersize=6, label='sampled')]
-    grid[0].legend(handles=legend_elements)
+    grid[train_grid_index].legend(handles=legend_elements)
 
-    grid[1].set_aspect('equal')
+    grid[test_grid_index].set_aspect('equal')
     if is_contour == True:
-        colorbar = grid[1].contourf(grid_X, grid_Y, grid_probabilities, levels=levels, cmap='RdBu', alpha=0.2)
-        grid.cbar_axes[1].colorbar(colorbar)
-        grid.cbar_axes[1].set_yticks(np.linspace(0., 1., 5))
+        colorbar = grid[test_grid_index].contourf(grid_X, grid_Y, grid_probabilities, levels=levels, cmap='RdBu', alpha=0.2)
+        grid.cbar_axes[test_grid_index].colorbar(colorbar)
+        grid.cbar_axes[test_grid_index].set_yticks(np.linspace(0., 1., 5))
     else:
-        grid[1].imshow(grid_colors, alpha=0.5, origin='lower', extent=[xmin, xmax, ymin, ymax])
+        grid[test_grid_index].imshow(grid_colors, alpha=0.5, origin='lower', extent=[xmin, xmax, ymin, ymax])
 
-    grid[1].scatter(
+    grid[test_grid_index].scatter(
         test_features[:, 0], test_features[:, 1],
         c=cm(test_labels), alpha=1.0,
         marker='o', s=8, edgecolor='black', linewidth=0.1)
-    grid[1].set_xlim(xmin, xmax)
-    grid[1].set_ylim(ymin, ymax)
-    grid[1].set_xticks(np.linspace(xmin, xmax, 5))
-    grid[1].set_yticks(np.linspace(ymin, ymax, 5))
-    grid[1].set_title('Test Data / Probability', fontsize=10)
+    grid[test_grid_index].set_xlim(xmin, xmax)
+    grid[test_grid_index].set_ylim(ymin, ymax)
+    grid[test_grid_index].set_xticks(np.linspace(xmin, xmax, 5))
+    grid[test_grid_index].set_yticks(np.linspace(ymin, ymax, 5))
+    grid[test_grid_index].set_title('Test Data / Probability', fontsize=10)
 
     legend_elements = [
         Line2D(
             [0], [0], linestyle='none', marker='o', 
             markeredgewidth=0.1, markeredgecolor='black', markerfacecolor='grey',
             alpha=0.5, markersize=2, label='test')]
-    grid[1].legend(handles=legend_elements)
+    grid[test_grid_index].legend(handles=legend_elements)
 
     path = Path(__file__)
     plt.savefig(path.parent.joinpath(filename))

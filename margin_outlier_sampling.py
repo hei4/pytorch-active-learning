@@ -157,6 +157,7 @@ def main():
 
         uncertainty_set = Subset(unlabel_set, uncertainty_sampling_indices)
         uncertainty_loader = DataLoader(uncertainty_set, shuffle=False, drop_last=False, **kwargs)
+        print('uncertainty', len(uncertainty_set))
 
         ####
         # 多様性スコアラーの準備
@@ -183,6 +184,7 @@ def main():
         ])
 
         sampled_set = Subset(unlabel_set, sampling_indices)
+        print('sampled', len(sampled_set))
 
         ####
         # グリッドデータ
@@ -223,17 +225,20 @@ def main():
             test_set,
             grid_set,
             grid_probabilities,
-            uncertainty_scores,
-            diversity_scores)
+            diversity_scores,
+            auxiliary_set=uncertainty_set,
+            auxiliary_scores=uncertainty_scores)
         
         ####
         # データセット変更
         ####
         train_set = ConcatDataset([train_set, sampled_set])
         train_loader = DataLoader(train_set, shuffle=True, drop_last=True, **kwargs)
+        print('train', len(train_set))
 
         unlabel_set = Subset(unlabel_set, rest_indices)
         unlabel_loader = DataLoader(unlabel_set, shuffle=False, drop_last=False, **kwargs)        
+        print('unlabel', len(unlabel_set))
 
         ####
         # リセット
